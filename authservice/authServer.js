@@ -34,7 +34,7 @@ app.delete("/logout", (req, res) => {
 
 app.post("/login", async (req, res) => {
   try {
-    console.log("sign in");
+    console.log("auth login");
     // Authenticate User
     const user = users.find((user) => user.username === req.body.username);
     if (user == null) {
@@ -65,7 +65,7 @@ app.post("/register", async (req, res) => {
 });
 
 function generateAccessToken(user) {
-  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15s" });
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "20m" });
 }
 
 app.listen(4000);
