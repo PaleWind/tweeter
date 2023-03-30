@@ -17,11 +17,13 @@ app.use(cors());
 
 const posts = [
   {
-    username: "Kyle",
+    id: "1",
+    username: "aoi",
     title: "Post 1",
   },
   {
-    username: "Jim",
+    id: "2",
+    username: "aoi",
     title: "Post 2",
   },
 ];
@@ -36,7 +38,7 @@ app.post("/login", (req, res) => {
   }
 
   // fetch("http://localhost:3002/login", {
-  fetch("http://authservice:4000/login", {
+  return fetch("http://authservice:4000/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -46,22 +48,22 @@ app.post("/login", (req, res) => {
       username: username,
       password: password,
     }),
-  }).then((res) => res.json());
-  // .then(
-  //   (result) => {
-  //     console.log(result);
-  //     // res.cookie('jwt', refreshToken, { httpOnly: true,
-  //     //   sameSite: 'None', secure: true,
-  //     //   maxAge: 24 * 60 * 60 * 1000 });
-  //   },
-  //   (error) => {
-  //     console.log(error);
-  //   }
-  // );
+  })
+    .then((res) => res.json())
+    .then(
+      (result) => {
+        console.log("result", result.accessToken);
+        res.json(result);
+      },
+      (error) => {
+        console.log(error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    );
 });
 
-app.get("/posts", authenticateToken, (req, res) => {
-  res.json(posts.filter((post) => post.username === req.user.name));
+app.get("/feed", authenticateToken, (req, res) => {
+  res.json(posts.filter((post) => post.username === req.user.username));
 });
 
 function authenticateToken(req, res, next) {
@@ -70,8 +72,11 @@ function authenticateToken(req, res, next) {
   if (token == null) return res.sendStatus(401);
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    console.log(err);
-    if (err) return res.sendStatus(403);
+    if (err) {
+      console.log(err);
+      return res.sendStatus(403);
+    }
+    console.log(user);
     req.user = user;
     next();
   });

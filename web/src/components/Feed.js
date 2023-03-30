@@ -1,61 +1,71 @@
 import React from "react";
-import { useState, useEffect } from "react";
-import Login from "./Login";
-const Feed = () => {
-  const [error, setError] = useState(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [items, setItems] = useState({});
-  // const name = "you";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Cookies from "js-cookie";
+import jwt_decode from "jwt-decode";
 
-  const query = `query Byebye($name: String!) {
-    byebye(name: $name)
-  }`;
+const Feed = () => {
+  let navigate = useNavigate();
+  let [posts, setPosts] = useState(null);
+
+  const getPosts = async () => {
+    try {
+      let token = Cookies.get("token");
+      if (!token) {
+        throw new Error("Missing token");
+      }
+      let response = await axios.get("http://localhost:3001/feed", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.log(error.message);
+      navigate("/");
+    }
+  };
 
   useEffect(() => {
-    fetch("http://localhost:4000/graphql", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        query,
-        variables: { name: "you" },
-      }),
-    })
-      .then((res) => res.json())
-      .then(
-        (result) => {
-          setIsLoaded(true);
-          setItems(result);
-        },
-        (error) => {
-          setIsLoaded(true);
-          setError(error);
-        }
-      )
-      .then(() => {
-        console.log(items);
-      });
+    let token = Cookies.get("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    try {
+      let exp = jwt_decode(token);
+      if (exp < Date.now() / 1000) {
+        navigate("/login");
+        return;
+      } else {
+        getPosts().then((res) => {
+          setPosts(res);
+        });
+      }
+    } catch (error) {
+      navigate("/login");
+      return;
+    }
   }, []);
 
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  } else if (!isLoaded) {
-    return <div>Loading...</div>;
-  } else {
-    return (
-      <Login />
-      // <div>{items.data.byebye}</div>
-      // <ul>
-      //   {items.map((item) => (
-      //     <li key={item.id}>
-      //       {item.name} {item.price}
-      //     </li>
-      //   ))}
-      // </ul>
-    );
-  }
+  return (
+    <div>
+      Feed
+      {posts ? (
+        posts.map((post, i) => {
+          return (
+            <div key={post.id}>
+              <h1>{post.title}</h1>
+              <p>{post.description}</p>
+            </div>
+          );
+        })
+      ) : (
+        <p>Loading...</p>
+      )}
+    </div>
+  );
 };
 
 export default Feed;

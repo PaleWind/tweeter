@@ -1,8 +1,13 @@
 import React, { useState } from "react";
-import { redirect } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
+import axios from "axios";
+import Cookies from "js-cookie";
+import jwt_decode from "jwt-decode";
 
 const Login = () => {
+  let navigate = useNavigate();
+
   let [username, setUsername] = useState("");
   let [email, setEmail] = useState("");
   let [password, setPassword] = useState("");
@@ -24,31 +29,25 @@ const Login = () => {
     setAuthMode(authMode === "signin" ? "signup" : "signin");
   };
 
-  const signIn = (event) => {
+  async function signIn(event) {
     event.preventDefault();
-    console.log("event", event);
-    fetch("http://localhost:3001/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        username: username,
-        password: password,
-      }),
-    })
-      // .then((res) => res.json())
-      .then(
-        (result) => {
-          console.log("tokens", result);
-          redirect("/feed");
-        },
-        (error) => {
-          console.log(error);
-        }
-      );
-  };
+    try {
+      const response = await axios.post("http://localhost:3001/login", {
+        username: "aoi", //username,
+        password: "pass", //password,
+      });
+      // console.log("token", response.data.accessToken);
+      let token = response.data.accessToken;
+      const exp = jwt_decode(token);
+      const expirationTime = new Date(exp * 1000);
+      Cookies.set("token", token, { expires: expirationTime });
+      if (token) {
+        navigate("/feed");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   if (authMode === "signin") {
     return (
@@ -84,6 +83,7 @@ const Login = () => {
               />
             </div>
             <div className="d-grid gap-2 mt-3">
+              {/* <button onClick={(e) => signIn(e)} className="btn btn-primary"> */}
               <button onClick={(e) => signIn(e)} className="btn btn-primary">
                 Submit
               </button>

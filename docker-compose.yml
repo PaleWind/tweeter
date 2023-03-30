@@ -28,6 +28,7 @@ services:
     volumes:
       - ./gateway:/app
       - ./gateway/node_modules:/app/node_modules
+      # - /app/node_modules
   authservice:
     image: tweeter/authservice
     build: ./authservice
@@ -35,7 +36,7 @@ services:
       - "3002:4000"
     volumes:
       - ./authservice:/app
-      - ./authservice/node_modules:/app/node_modules
+      - /app/node_modules # this anonymous binding fixed the bcrypt error
       # - ./authservice/node_modules:/app/node_modules
 volumes:
   db-data:
