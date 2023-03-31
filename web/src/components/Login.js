@@ -4,6 +4,7 @@ import "../styles/Login.css";
 import axios from "axios";
 import Cookies from "js-cookie";
 import jwt_decode from "jwt-decode";
+import bcrypt from "bcryptjs";
 
 const Login = () => {
   let navigate = useNavigate();
@@ -32,11 +33,11 @@ const Login = () => {
   async function signIn(event) {
     event.preventDefault();
     try {
+      let hashedPassword = await bcrypt.hash(password, 10);
       const response = await axios.post("http://localhost:3001/login", {
-        username: "aoi", //username,
-        password: "pass", //password,
+        username: username,
+        password: hashedPassword,
       });
-      // console.log("token", response.data.accessToken);
       let token = response.data.accessToken;
       const exp = jwt_decode(token);
       const expirationTime = new Date(exp * 1000);

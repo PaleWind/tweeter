@@ -1,17 +1,10 @@
-// require("dotenv").config();
 import {} from "dotenv/config";
-// const express = require("express");
 import express from "express";
-const app = express();
-// const jwt = require("jsonwebtoken");
 import jwt from "jsonwebtoken";
-// const axios = require("axios");
-// const fetch = require("node-fetch");
-import fetch from "node-fetch";
-
-// var cors = require("cors");
 import cors from "cors";
+import { authGate } from "./gates/authGate.js";
 
+const app = express();
 app.use(express.json());
 app.use(cors());
 
@@ -30,36 +23,12 @@ const posts = [
 
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
-  console.log("gateway /login", username, password);
-  if (!username || !password) {
-    return res
-      .status(400)
-      .json({ message: "Username and password are required" });
-  }
+  res.json(authGate.login(username, password));
+});
 
-  // fetch("http://localhost:3002/login", {
-  return fetch("http://authservice:4000/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      username: username,
-      password: password,
-    }),
-  })
-    .then((res) => res.json())
-    .then(
-      (result) => {
-        console.log("result", result.accessToken);
-        res.json(result);
-      },
-      (error) => {
-        console.log(error);
-        res.status(500).json({ message: "Internal server error" });
-      }
-    );
+app.post("/register", (req, res) => {
+  const { username, password } = req.body;
+  res.json(authGate.register(username, password));
 });
 
 app.get("/feed", authenticateToken, (req, res) => {

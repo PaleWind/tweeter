@@ -25,6 +25,7 @@ services:
     build: ./gateway
     ports:
       - "3001:4000"
+      - "9228:9228" #debug port
     volumes:
       - ./gateway:/app
       - ./gateway/node_modules:/app/node_modules
@@ -34,9 +35,10 @@ services:
     build: ./authservice
     ports:
       - "3002:4000"
+      - "9229:9229" #debug port
     volumes:
       - ./authservice:/app
-      - /app/node_modules # this anonymous binding fixed the bcrypt error
-      # - ./authservice/node_modules:/app/node_modules
+      - ./authservice/node_modules:/app/node_modules
+      # - /app/node_modules # this anonymous binding fixed the bcrypt error
 volumes:
   db-data:

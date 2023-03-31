@@ -1,9 +1,10 @@
-require("dotenv").config();
+import {} from "dotenv/config";
+import express from "express";
+import jwt from "jsonwebtoken";
+import cors from "cors";
+import bcrypt from "bcryptjs";
+import { authRepo } from "./authRepo.js";
 
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-var cors = require("cors");
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -36,7 +37,7 @@ app.post("/login", async (req, res) => {
   try {
     console.log("auth login");
     // Authenticate User
-    const user = users.find((user) => user.username === req.body.username);
+    const user = await authRepo.getUser(req.body.username);
     if (user == null) {
       return res.status(400).send("Cannot find user");
     }
@@ -48,19 +49,29 @@ app.post("/login", async (req, res) => {
     } else {
       res.send("Not Allowed");
     }
-  } catch {
-    res.status(500).send();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error });
   }
 });
 
 app.post("/register", async (req, res) => {
   try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    const user = { name: req.body.username, password: hashedPassword };
-    users.push(user);
-    res.status(201).send("user created");
-  } catch {
-    res.status(500).send();
+    console.log("authserver/register");
+    const { username, password } = req.body;
+    const existingUser = await authRepo.getUser(req.body.username);
+    if (existingUser) {
+      return res.status(409).json({ message: "Username is already taken" });
+    }
+    await authRepo.registerUser(username, password);
+    const newUser = await authRepo.getUser(username);
+    const accessToken = generateAccessToken(newUser);
+    const refreshToken = jwt.sign(newUser, process.env.REFRESH_TOKEN_SECRET);
+    refreshTokens.push(refreshToken);
+    res.json({ accessToken: accessToken, refreshToken: refreshToken });
+  } catch (error) {
+    console.log(error);
+    res.json({ error: error });
   }
 });
 

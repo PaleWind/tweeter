@@ -4,5 +4,7 @@ COPY package*.json ./
 RUN npm install
 # COPY . .
 EXPOSE 4000
-
-CMD [ "npm", "start" ]
+EXPOSE 9229
+# ENTRYPOINT [ "nodemon","--inspect=0.0.0.0","./gatewayServer.js" ]
+# CMD [ "npm", "start" ]
+CMD ["npm","run", "start-debug"]

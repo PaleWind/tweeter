@@ -2,10 +2,11 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "gatewayServer.js",
   "type": "module",
   "scripts": {
     "start": "nodemon gatewayServer.js",
+    "start-debug": "nodemon --inspect=0.0.0.0 gatewayServer.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
